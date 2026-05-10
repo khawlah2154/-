@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة MEWA الذكية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --mewa-green: #007a3d; --mewa-dark: #004d26; --accent: #c5a059; --bg: #f4f7f6; --white: #ffffff; --danger: #e74c3c; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background-color: var(--bg); color: #333; }
+        #login-screen { position: fixed; width: 100%; height: 100%; z-index: 2000; background: linear-gradient(135deg, var(--mewa-dark), var(--mewa-green)); display: flex; justify-content: center; align-items: center; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; width: 350px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .login-box input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-enter { width: 100%; padding: 12px; background: var(--mewa-green); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        #main-app { display: none; }
+        header { background: white; padding: 15px 8%; display: flex; justify-content: space-between; border-bottom: 4px solid var(--mewa-green); }
+        .hero { background: var(--mewa-green); color: white; padding: 40px 8% 80px; text-align: center; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; padding: 0 8%; margin-top: -40px; }
+        .card { background: white; padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card:hover { transform: scale(1.05); border-bottom: 5px solid var(--accent); }
+        .card h2 { font-size: 2.8rem; color: var(--mewa-green); }
+        .card.danger h2 { color: var(--danger); }
+        .view-section { display: none; padding: 40px 8%; }
+        .btn-back { background: var(--accent); color: white; padding: 8px 20px; border-radius: 5px; cursor: pointer; display: inline-block; margin-bottom: 20px; }
+        #bot-trigger { position: fixed; bottom: 30px; right: 30px; font-size: 3rem; cursor: pointer; z-index: 1000; animation: float 3s infinite; }
+        #chat-window { display: none; position: fixed; bottom: 100px; right: 30px; width: 350px; height: 450px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1500; flex-direction: column; }
+        .chat-header { background: var(--mewa-green); color: white; padding: 15px; border-radius: 20px 20px 0 0; display: flex; justify-content: space-between; }
+        .chat-body { flex: 1; padding: 15px; overflow-y: auto; background: #f9f9f9; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+    </style>
+</head>
+<body>
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>نظام MEWA الذكي</h2>
+            <input type="text" id="username" placeholder="اسم المستخدم">
+            <input type="password" placeholder="كلمة المرور">
+            <button class="btn-enter" onclick="handleLogin()">دخول</button>
+        </div>
+    </div>
+    <div id="main-app">
+        <header><div>وزارة البيئة والمياه والزراعة</div><div onclick="location.reload()" style="color:var(--danger); cursor:pointer">خروج</div></header>
+        <div id="dashboard-view">
+            <section class="hero"><h1>لوحة متابعة العقود</h1></section>
+            <div class="stats-grid">
+                <div class="card" onclick="navigateTo('total-view')"><h2>128</h2><p>إجمالي العقود</p></div>
+                <div class="card" onclick="navigateTo('active-view')"><h2>96</h2><p>العقود النشطة</p></div>
+                <div class="card" onclick="navigateTo('comp-view')"><h2>24</h2><p>المنافسات</p></div>
+                <div class="card danger" onclick="navigateTo('late-view')"><h2>6</h2><p>متأخرة</p></div>
+            </div>
+        </div>
+        <div id="total-view" class="view-section"><div class="btn-back" onclick="navigateTo('dashboard-view')">عودة</div><h2>كافة العقود</h2><p>تفاصيل 128 عقداً...</p></div>
+        <div id="active-view" class="view-section"><div class="btn-back" onclick="navigateTo('dashboard-view')">عودة</div><h2>العقود النشطة</h2></div>
+        <div id="comp-view" class="view-section"><div class="btn-back" onclick="navigateTo('dashboard-view')">عودة</div><h2>المنافسات</h2></div>
+        <div id="late-view" class="view-section"><div class="btn-back" onclick="navigateTo('dashboard-view')">عودة</div><h2 style="color:var(--danger)">تنبيه المتأخرات</h2></div>
+        <div id="bot-trigger" onclick="toggleBot()">🤖</div>
+        <div id="chat-window">
+            <div class="chat-header"><span>المساعد الذكي</span><span onclick="toggleBot()" style="cursor:pointer">✕</span></div>
+            <div class="chat-body" id="chat-content"><div style="background:var(--mewa-green); color:white; padding:10px; border-radius:10px;">كيف أخدمك اليوم؟</div></div>
+        </div>
+    </div>
+    <script>
+        function handleLogin() { 
+            if(document.getElementById('username').value !== "") {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+            }
+        }
+        function navigateTo(id) {
+            document.getElementById('dashboard-view').style.display = 'none';
+            const sections = document.getElementsByClassName('view-section');
+            for(let s of sections) s.style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        }
+        function toggleBot() {
+            const win = document.getElementById('chat-window');
+            win.style.display = (win.style.display === 'flex') ? 'none' : 'flex';
+        }
+    </script>
+</body>
+</html>
